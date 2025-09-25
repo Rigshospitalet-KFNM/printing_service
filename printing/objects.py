@@ -14,7 +14,7 @@ class Printer:
     name: str
     status: str
     enabled: bool = True
-    jobs: int = 0
+    current_job: str | None = None 
     since: Optional[str] = None
     location: Optional[str] = None
     description: Optional[str] = None

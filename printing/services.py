@@ -1,18 +1,68 @@
 import re
 import subprocess
+import tempfile
+from typing import Optional, Union
 from printing.objects import Printer, Job
+from pathlib import Path
 
 
 class CupsCLIService:
+    def __init__(self, host="hopper.petnet.rh.dk:631/version=1.1"):
+        self.host = host
+    
     def list_printers(self):
         raw_text = self._run_lpstat()
         return self._parse_printers(raw_text)
+    
+
+    def print(
+        self,
+        printer_name: str,
+        content: Union[str, Path],
+        number: int = 1,
+        user: Optional[str] = None
+    ):
+        """
+        Print either a string (raw text) or a file (Path or string path).
+        """
+        try:
+            if isinstance(content, Path) or (isinstance(content, str) and Path(content).exists()):
+                # It's a file path
+                output = self._print_file(printer_name, str(content), number, user)
+            else:
+                # Treat as raw text
+                output = self._print_text(printer_name, str(content), number, user)
+            return {"success": True, "message": output}
+        except RuntimeError as e:
+            return {"success": False, "message": str(e)}
 
 
-    #subprocesses
+    #subprocesses-----------
+
+    #printing
+    def _print_file(self, printer_name: str, file_path: str, number: int = 1, user: Optional[str] = None):
+        cmd = ["lp", "-h", self.host, "-d", printer_name, "-n", str(number)]
+        if user:
+            cmd.extend(["-U", user])
+        cmd.append(file_path)
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise RuntimeError(f"Print failed: {result.stderr.strip()}")
+        return result.stdout.strip()
+
+    def _print_text(self, printer_name: str, text: str, number: int = 1, user: Optional[str] = None):
+        # Write text to a temporary file and print
+        with tempfile.NamedTemporaryFile("w+", delete=False) as tmp:
+            tmp.write(text)
+            tmp.flush()
+            return self._print_file(printer_name, tmp.name, number, user)
+
+
+    #query
     def _run_lpstat(self):
         result = subprocess.run(
-            ["lpstat", "-h", "hopper.petnet.rh.dk:631/version=1.1", "-l", "-p"],
+            ["lpstat", "-h", self.host, "-l", "-p"],
             capture_output=True
         )
     
@@ -24,7 +74,7 @@ class CupsCLIService:
         printers: dict[str, Printer] = {}
 
         pattern_enabled = re.compile(
-            r"(?:printer )?(\S+) is (\w+)(?: (\d+) job)?\. +enabled since (.+)"
+            r"(?:printer )?(\S+)\s+(?:is\s+(\w+)|now printing (\S+))\. +enabled since (.+)"        
         )
         pattern_disabled = re.compile(
             r"(?:printer )?(\S+) disabled since (.+?) -$"
@@ -67,17 +117,24 @@ class CupsCLIService:
         printer: Printer | None = None
 
         if match_enabled:
-            name, status, jobs, since = match_enabled.groups()
-            jobs = int(jobs) if jobs else 0
+            name = match_enabled.group(1)
+            status_word = match_enabled.group(2)
+            job_id = match_enabled.group(3)
+            since = match_enabled.group(4)
+
+            if job_id:
+                status = "printing"
+                current_job = job_id
+            else:
+                status = status_word
+                current_job = None
+
             printer = Printer(
                 name=name,
                 status=status,
                 enabled=True,
-                jobs=jobs,
                 since=since,
-                description=None,
-                location=None,
-                error=None,
+                current_job=current_job,
             )
         elif match_disabled:
             name, since = match_disabled.groups()
@@ -85,7 +142,6 @@ class CupsCLIService:
                 name=name,
                 status="disabled",
                 enabled=False,
-                jobs=0,
                 since=since,
                 description=None,
                 location=None,
