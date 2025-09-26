@@ -62,7 +62,7 @@ class CupsCLIService:
     #query
     def _run_lpstat(self):
         result = subprocess.run(
-            ["lpstat", "-h", self.host, "-l", "-p"],
+            ["lpstat", "-h", self.host, "-l", "-v", "-p"],
             capture_output=True
         )
     
@@ -72,6 +72,11 @@ class CupsCLIService:
     #parsing
     def _parse_printers(self, raw_text: str) -> dict[str, Printer]:
         printers: dict[str, Printer] = {}
+        device_map: dict[str, str] = {}
+
+        pattern_device = re.compile(
+            r"device for (\S+):\s+(\S+)"
+        )       
 
         pattern_enabled = re.compile(
             r"(?:printer )?(\S+)\s+(?:is\s+(\w+)|now printing (\S+))\. +enabled since (.+)"        
@@ -86,6 +91,13 @@ class CupsCLIService:
             line = line.strip()
             if not line:
                 continue
+            
+            # First check for device lines
+            match_device = pattern_device.match(line)
+            if match_device:
+                name, uri = match_device.groups()
+                device_map[name] = uri
+                continue
 
             # Check if line starts a new printer
             if pattern_enabled.match(line) or pattern_disabled.match(line):
@@ -93,6 +105,8 @@ class CupsCLIService:
                     printer = self._parse_block(current_block, pattern_enabled, pattern_disabled)
                     if printer:
                         printers[printer.name] = printer
+                        # attach device_uri if known
+                        printer.device_uri = device_map.get(printer.name)
                 current_block = [line]
             else:
                 current_block.append(line)
@@ -102,6 +116,7 @@ class CupsCLIService:
             printer = self._parse_block(current_block, pattern_enabled, pattern_disabled)
             if printer:
                 printers[printer.name] = printer
+                printer.device_uri = device_map.get(printer.name)
 
         return printers
 
