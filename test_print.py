@@ -4,6 +4,13 @@ cups = CupsCLIService()
 #result = cups.print("maria", "/home/Mathias/Testing/testfile.ps", user="tester")
 #print(result)
 printers = cups.list_printers()
-print(printers.get("maria"))
-print(printers.get("maria").device_uri) # type: ignore
-print(printers.get("maria").is_reachable()) # type: ignore
+
+jobs = cups.list_jobs()
+print(jobs)  # all jobs
+
+maria_jobs = cups.list_jobs("maria")
+print(maria_jobs)
+
+#print(printers.get("maria"))
+#print(printers.get("maria").device_uri) # type: ignore
+#print(printers.get("maria").is_reachable()) # type: ignore

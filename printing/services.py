@@ -14,14 +14,25 @@ class CupsCLIService:
         raw_text = self._run_lpstat()
         return self._parse_printers(raw_text)
     
+    def list_jobs(self, printer: Optional[str] = None) -> list[Job]:
+        """
+        List print jobs.
+        If `printer` is given, only list jobs for that printer.
+        """
+        cmd = ["lpstat", "-h", "hopper.petnet.rh.dk:631/version=1.1", "-o"]
+        if printer:
+            cmd.append(printer)
 
+        raw = subprocess.check_output(cmd, text=True)
+        return self._parse_jobs(raw)
+    
     def print(self, printer_name: str, content: Union[str, Path], number: int = 1, user: Optional[str] = None):
         """
         Print either a string (raw text) or a file (Path or string path).
         """
         try:
             path = Path(content) if not isinstance(content, Path) else content
-            
+
             if path.exists():
                 output = self._print_file(printer_name, str(path), number, user)
             else:
@@ -73,7 +84,7 @@ class CupsCLIService:
             return self._print_file(printer_name, tmp.name, number, user)
 
 
-    #query
+    #query printers
     def _run_lpstat(self):
         result = subprocess.run(
             ["lpstat", "-h", self.host, "-l", "-v", "-p"],
@@ -191,3 +202,32 @@ class CupsCLIService:
                 printer.error = line
 
         return printer
+    
+    #query jobs
+    def _parse_jobs(self, raw_text: str) -> list[Job]:
+        """
+        Parse `lpstat -o` output into Job objects.
+        Example line:
+          maria-7391   alice   1024   Fri 01 Jan 1970 01:00:00 CET
+        """
+        jobs: list[Job] = []
+        pattern = re.compile(
+            r"(?P<printer>\S+)-(?P<id>\d+)\s+"
+            r"(?P<user>\S+)\s+"
+            r"(?P<size>\d+)\s+"
+            r"(?P<submitted>.+)"
+        )
+        for line in raw_text.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            match = pattern.match(line)
+            if match:
+                jobs.append(Job(
+                    id=match.group("id"),
+                    printer=match.group("printer"),
+                    user=match.group("user"),
+                    size=match.group("size"),
+                    submitted=match.group("submitted"),
+                ))
+        return jobs

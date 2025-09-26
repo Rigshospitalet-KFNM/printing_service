@@ -4,11 +4,12 @@ from typing import Optional
 
 @dataclass
 class Job:
-    id: int
+    id: str
     printer: str
     user: str
-    status: str
-    pages: Optional[int] = None
+    size: str
+    submitted: str
+    status: Optional[str] = None
 
 @dataclass
 class Printer:
