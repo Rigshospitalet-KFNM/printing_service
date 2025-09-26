@@ -47,7 +47,7 @@ class Printer:
                 return False
 
         elif self.device_uri.startswith("ipp://"):
-            # very simple check → try port 631 unless explicitly given
+            # very simple check -> try port 631 unless explicitly given
             hostport = self.device_uri[len("ipp://"):]
             if ":" in hostport:
                 host, port = hostport.split(":", 1)

@@ -15,23 +15,37 @@ class CupsCLIService:
         return self._parse_printers(raw_text)
     
 
-    def print(
-        self,
-        printer_name: str,
-        content: Union[str, Path],
-        number: int = 1,
-        user: Optional[str] = None
-    ):
+    def print(self, printer_name: str, content: Union[str, Path], number: int = 1, user: Optional[str] = None):
         """
         Print either a string (raw text) or a file (Path or string path).
         """
         try:
-            if isinstance(content, Path) or (isinstance(content, str) and Path(content).exists()):
-                # It's a file path
-                output = self._print_file(printer_name, str(content), number, user)
+            path = Path(content) if not isinstance(content, Path) else content
+            
+            if path.exists():
+                output = self._print_file(printer_name, str(path), number, user)
             else:
-                # Treat as raw text
                 output = self._print_text(printer_name, str(content), number, user)
+            return {"success": True, "message": output}
+        except RuntimeError as e:
+            return {"success": False, "message": str(e)}
+    
+    def safe_print(self, printer: Printer, content: Union[str, Path], number: int = 1, user: Optional[str] = None):
+        """
+        Print either a string (raw text) or a file (Path or string path).
+        Checks if printer is reachable before sending job, prevents cluddering inactive printers with jobs
+        """
+        
+        if not printer.is_reachable():
+            return {"success": False, "message": "Printer unreachable"}
+
+        try:
+            path = Path(content) if not isinstance(content, Path) else content
+
+            if path.exists():
+                output = self._print_file(printer.name, str(path), number, user)
+            else:
+                output = self._print_text(printer.name, str(content), number, user)
             return {"success": True, "message": output}
         except RuntimeError as e:
             return {"success": False, "message": str(e)}
