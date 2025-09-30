@@ -2,7 +2,7 @@ import re
 import subprocess
 import tempfile
 from typing import Optional, Union
-from printing.objects import Printer, Job
+from .objects import Printer, Job
 from pathlib import Path
 
 
@@ -19,7 +19,7 @@ class CupsCLIService:
         List print jobs.
         If `printer` is given, only list jobs for that printer.
         """
-        cmd = ["lpstat", "-h", "hopper.petnet.rh.dk:631/version=1.1", "-o"]
+        cmd = ["lpstat", "-h", self.host, "-o"]
         if printer:
             cmd.append(printer)
 
@@ -170,7 +170,7 @@ class CupsCLIService:
                 current_job = None
 
             printer = Printer(
-                name=name,
+                name=name.strip(),
                 status=status,
                 enabled=True,
                 since=since,
@@ -179,7 +179,7 @@ class CupsCLIService:
         elif match_disabled:
             name, since = match_disabled.groups()
             printer = Printer(
-                name=name,
+                name=name.strip(),
                 status="disabled",
                 enabled=False,
                 since=since,

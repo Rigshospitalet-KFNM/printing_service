@@ -1,16 +1,21 @@
-from printing.services import CupsCLIService
+from printing_service.services import CupsCLIService
 
-cups = CupsCLIService()
-#result = cups.print("maria", "/home/Mathias/Testing/testfile.ps", user="tester")
-#print(result)
-printers = cups.list_printers()
+#cups = CupsCLIService()
+#printers = cups.list_printers()
 
-jobs = cups.list_jobs()
-print(jobs)  # all jobs
 
-maria_jobs = cups.list_jobs("maria")
-print(maria_jobs)
+#result = cups.safe_print(printers["william"], "", user="tester")
+#rint(result)
+
+#jobs = cups.list_jobs()
+#print(jobs)  # all jobs
+
+#maria_jobs = cups.list_jobs("William")
+#print(maria_jobs)
 
 #print(printers.get("maria"))
 #print(printers.get("maria").device_uri) # type: ignore
-#print(printers.get("maria").is_reachable()) # type: ignore
+
+#for printer in printers:
+#    if printers[printer].is_reachable(): # type: ignore
+#        print(printers[printer].name)

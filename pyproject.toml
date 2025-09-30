@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "printing-service"
+version = "0.1.0"
+description = "A simple Python broker for internal managing and printing via CUPS 1.1 using subprocesses."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name="Mathias", email="mathiasjohnbeck@gmail.com" }
+]
+
+# No current dependencies
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Rigshospitalet-KFNM/printing_service"
