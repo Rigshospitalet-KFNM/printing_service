@@ -1,4 +1,4 @@
-from printing_service.services import CupsCLIService
+from printing_service.cli_broker import CupsCLIService
 
 #cups = CupsCLIService()
 #printers = cups.list_printers()

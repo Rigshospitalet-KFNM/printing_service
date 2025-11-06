@@ -5,7 +5,12 @@ from typing import Optional, Union
 from .objects import Printer, Job
 from pathlib import Path
 
-
+'''
+base broker service using subprocesses to talk to CUPS, 
+backwards compatipable with older versions of CUPS.
+Currently hardcoded to talk to hopper's old printing server
+if possible use the newer and more stable pycups_broker.
+'''
 class CupsCLIService:
     def __init__(self, host="hopper.petnet.rh.dk:631/version=1.1"):
         self.host = host

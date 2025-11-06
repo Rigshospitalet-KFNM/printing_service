@@ -10,6 +10,7 @@ class Job:
     size: str
     submitted: str
     status: Optional[str] = None
+    pages: Optional[int] = 1
 
 @dataclass
 class Printer:
