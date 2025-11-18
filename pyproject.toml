@@ -18,6 +18,12 @@ dependencies = [
     "pycups>=2.0.4"
 ]
 
+[tool.setuptools]
+packages = ["printing_service"]
+
+[tool.setuptools.packages.find]
+include = ["printing_service"]
+
 [project.urls]
 Homepage = "https://github.com/Rigshospitalet-KFNM/printing_service"
 
