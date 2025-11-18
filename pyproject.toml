@@ -26,9 +26,3 @@ dev = [
     "pytest",
     "ruff",
 ]
-
-[tool.setuptools]
-packages = ["printing_service"]
-
-[tool.setuptools.packages.find]
-include = ["printing_service"]
