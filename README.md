@@ -1,7 +1,10 @@
 # printing_service
+## Cli_broker
 A lightweight Python broker for sending print jobs to the internal `hopper` CUPS server.
 
----
+## Pycups_broker
+A more versitile modern broker for sending print jobs to a cups server.
+
 
 ## Installation
 
@@ -21,36 +24,40 @@ pip install .
 ### usage
 
 ```
-from printing_service import CupsCLIService
+from printing_service import CupsCLIService/CupsPyService
 
-cups = CupsCLIService()
+cups = CupsCLIService()/CupsPyService()
 
 # List all printers
 printers = cups.list_printers()
 
-# Access a specific printer
-printer = printers["william"]
+# Access a specific printer 
+printer = printers["william"] #cli_broker
+get_printer("William") #pycups_broker
 
 # Check if printer is reachable (enabled and online)
 print(printer.is_reachable())
 
 # Print a file
-cups.print("william", "/path/to/file.ps", user="tester")
+cups.print("william", "/path/to/file.ps", user="tester") #cli_broker
+cups.print_file("william", "/path/to/file.ps") #pycups_broker
 
 # Print raw text
-cups.print("william", "Hello world", user="tester")
+cups.print("william", "Hello world", user="tester") #cli_broker
+cups.print_text("william", "Hello world", "testFile") #pycups_broker
 
-# Safe print (only sends job if printer is reachable)
+# Safe print (only sends job if printer is reachable) (cli_broker only)
 cups.safe_print(printer, "/path/to/file.ps", user="tester")
 
 # List all jobs
 cups.list_jobs()
 
-# List jobs for a specific printer
-cups.list_jobs("william")
+# List jobs for a specific printer 
+cups.list_jobs("william") #cli_broker
+get_printer_jobs("william") #pycups_broker
 ```
 
-Limited documentation:
+Limited documentation for CupsCLIService:
 ```
 CupsCLIService
 
@@ -80,5 +87,8 @@ Represents a print job (ID, owner, size, status, etc.).
 ```
 
 ## notes
+### Cli_broker
 - Requires `lq` and `lqstat` to be available in the system (`cups-client` package)
 - This is hardcoded to speak to hopper.petnet.rh.dk
+### Pycups_broker
+- Requires the CUPS library for python (pycups) to function
