@@ -4,17 +4,25 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "printing-service"
-version = "0.1.0"
-description = "A simple Python broker for internal managing and printing via CUPS 1.1 using subprocesses."
+version = "0.2.0"
+description = "A Python library providing two brokers for interacting with CUPS servers: a subprocess-based CLI broker and a high-level pycups broker."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
+
 authors = [
     { name="Mathias", email="mathiasjohnbeck@gmail.com" }
 ]
 
-# No current dependencies
-dependencies = []
+dependencies = [
+    "pycups>=2.0.4"
+]
 
 [project.urls]
 Homepage = "https://github.com/Rigshospitalet-KFNM/printing_service"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+]

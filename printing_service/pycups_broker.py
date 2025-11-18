@@ -1,4 +1,4 @@
-import cups
+import cups #Dependency
 from pathlib import Path
 from typing import Optional, Union
 from printing_service.objects import Printer, Job 
@@ -95,6 +95,25 @@ class CupsPyService:
                 pages=attrs.get("job-media-sheets-completed"),
             ))
 
+        return jobs
+    
+    def get_printer_jobs(self, printer_name: str, which: str = "all") -> list[Job]:
+        jobs_raw = self.conn.getJobs(which_jobs=which, my_jobs=False)
+        jobs = []
+    
+        for job_id, attrs in jobs_raw.items():
+            if attrs.get("job-printer-name") != printer_name:
+                continue
+            
+            jobs.append(Job(
+                id=job_id,
+                name=attrs.get("job-name"), # type: ignore
+                user=attrs.get("job-originating-user-name"),
+                printer=attrs.get("job-printer-name"),
+                status=attrs.get("job-state"),
+                size=attrs.get("job-k-octets"),
+                pages=attrs.get("job-media-sheets-completed"),
+            ))
         return jobs
 
     def cancel_job(self, job_id: int):
